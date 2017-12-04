@@ -1,5 +1,4 @@
-# Mariadb replication Docker's container
-----
+# Mariadb 10.3 dockerized with replication
 
 > MariaDB 10.3 dockerized with replication. Master/Slave setup in 30 seconds.
 
@@ -16,7 +15,7 @@
 
 ## Todo
 
-- Add innodb-read-only parameter (need service restart on first run);
+- Add `innodb-read-only` parameter (need service restart on first run);
 - Permit replication on existing database.
 
 

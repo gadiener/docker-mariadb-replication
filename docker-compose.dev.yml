@@ -1,0 +1,38 @@
+version: '3'
+
+services:
+  db-master:
+    build: .
+    restart: on-failure
+    volumes:
+      - db-master-data:/var/lib/mysql:rw
+    environment:
+      MYSQL_DATABASE: "example"
+      MYSQL_ROOT_PASSWORD: "mastersecret"
+    networks:
+      - db-network
+
+  db-slave:
+    build: .
+    restart: on-failure
+    depends_on:
+      - db-master
+    volumes:
+      - db-slave-data:/var/lib/mysql:rw
+    environment:
+      MYSQL_DATABASE: "example"
+      MYSQL_ROOT_PASSWORD: "slavesecret"
+      MYSQL_MASTER_HOST: "db-master"
+      MYSQL_MASTER_PORT: 3306
+      MYSQL_MASTER_USER: "root"
+      MYSQL_MASTER_PASSWORD: "mastersecret"
+      MYSQL_SLAVE_SKIP_ERRORS: "all"
+    networks:
+      - db-network
+
+volumes:
+  db-master-data:
+  db-slave-data:
+
+networks:
+  db-network:

@@ -65,7 +65,7 @@ _get_config() {
 
 if [ "$1" = 'mysqld' -a -z "$wantHelp" ]; then
 	_check_config "$@"
-	# Get config
+	
 	DATADIR="$(_get_config 'datadir' "$@")"
 
 	if [ ! -d "$DATADIR/mysql" ]; then
@@ -75,7 +75,10 @@ if [ "$1" = 'mysqld' -a -z "$wantHelp" ]; then
 		file_env "MAX_BINLOG_SIZE" "100M"
 
 		if [ ! -z "$MYSQL_DATABASE" ]; then
-
+			
+			# @TODO
+			# Move that config in other path
+			# @see README.md
 			CONFIG_FILE="/etc/mysql/conf.d/master-slave.cnf"
 
 			cat <<-EOF > $CONFIG_FILE

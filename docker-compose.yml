@@ -9,8 +9,6 @@ services:
     environment:
       MYSQL_DATABASE: "example"
       MYSQL_ROOT_PASSWORD: "mastersecret"
-    networks:
-      - db-network
 
   db-slave:
     image: caffeina/mariadb-replication
@@ -27,12 +25,7 @@ services:
       MYSQL_MASTER_USER: "root"
       MYSQL_MASTER_PASSWORD: "mastersecret"
       MYSQL_SLAVE_SKIP_ERRORS: "all"
-    networks:
-      - db-network
 
 volumes:
   db-master-data:
   db-slave-data:
-
-networks:
-  db-network:

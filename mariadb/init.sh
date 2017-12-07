@@ -25,7 +25,7 @@ file_env() {
 	unset "$fileVar"
 }
 
-if [ ! -z "$MYSQL_MASTER_HOST" -a ! -z "$MYSQL_MASTER_USER" ]; then
+if [ ! -z "$MYSQL_MASTER_HOST" ]; then
 	echo
 	echo 'MySQL slave process in progress...'
 	echo
@@ -62,19 +62,23 @@ if [ ! -z "$MYSQL_MASTER_HOST" -a ! -z "$MYSQL_MASTER_USER" ]; then
 		sleep 1
 	done
 
-	export MYSQL_GRANT_SLAVE_USER="$(pwgen -1 16)"
-	echo "GENERATED SLAVE USER: $MYSQL_GRANT_SLAVE_USER"
-	export MYSQL_GRANT_SLAVE_PASSWORD="$(pwgen -1 32)"
-	echo "GENERATED SLAVE PASSWORD: $MYSQL_GRANT_SLAVE_PASSWORD"
-	echo
+	if [ ! -z "$MYSQL_GRANT_SLAVE_USER" -a ! -z "$MYSQL_GRANT_SLAVE_PASSWORD" ]; then
+		export MYSQL_GRANT_SLAVE_USER="$(pwgen -1 16)"
+		echo "GENERATED SLAVE USER: $MYSQL_GRANT_SLAVE_USER"
 
-	"${master_mysql[@]}" <<-EOSQL
-		GRANT REPLICATION SLAVE ON *.* TO '$MYSQL_GRANT_SLAVE_USER'@'%' IDENTIFIED BY '$MYSQL_GRANT_SLAVE_PASSWORD';
-		FLUSH PRIVILEGES;
-		FLUSH TABLES WITH READ LOCK;
-	EOSQL
+		export MYSQL_GRANT_SLAVE_PASSWORD="$(pwgen -1 32)"
+		echo "GENERATED SLAVE PASSWORD: $MYSQL_GRANT_SLAVE_PASSWORD"
+	
+
+		"${master_mysql[@]}" <<-EOSQL
+			GRANT REPLICATION SLAVE ON *.* TO '$MYSQL_GRANT_SLAVE_USER'@'%' IDENTIFIED BY '$MYSQL_GRANT_SLAVE_PASSWORD';
+			FLUSH PRIVILEGES;
+		EOSQL
+
+	fi
 
 	"${master_mysql[@]}" <<-EOSQL > $MYSQL_STATUS 2>&1
+		FLUSH TABLES WITH READ LOCK;
 		SHOW MASTER STATUS;
 	EOSQL
 
@@ -83,6 +87,8 @@ if [ ! -z "$MYSQL_MASTER_HOST" -a ! -z "$MYSQL_MASTER_USER" ]; then
 	"${master_mysql[@]}" <<-EOSQL
 		UNLOCK TABLES;
 	EOSQL
+
+	## SLAVE
 
 	slave_mysql=( mysql -u root )
 

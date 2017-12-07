@@ -121,7 +121,7 @@ if [ "$1" = 'mysqld' -a -z "$wantHelp" ]; then
 			
 			chown -R mysql:mysql "$CONFIG_FILE"
 		else
-			echo >&2 'error: master/slave feature is uninitialized. MYSQL_DATABASE env is not specified.'
+			echo >&2 'error: master/slave feature is uninitialized. MYSQL_DATABASE variable is not defined.'
 		fi
 	fi
 fi

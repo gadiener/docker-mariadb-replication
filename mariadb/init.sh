@@ -62,7 +62,7 @@ if [ ! -z "$MYSQL_MASTER_HOST" ]; then
 		sleep 1
 	done
 
-	if [ ! -z "$MYSQL_GRANT_SLAVE_USER" -a ! -z "$MYSQL_GRANT_SLAVE_PASSWORD" ]; then
+	if [ -z "$MYSQL_GRANT_SLAVE_USER" ] || [ -z "$MYSQL_GRANT_SLAVE_PASSWORD" ]; then
 		export MYSQL_GRANT_SLAVE_USER="$(pwgen -1 16)"
 		echo "GENERATED SLAVE USER: $MYSQL_GRANT_SLAVE_USER"
 
@@ -73,20 +73,29 @@ if [ ! -z "$MYSQL_MASTER_HOST" ]; then
 		"${master_mysql[@]}" <<-EOSQL
 			GRANT REPLICATION SLAVE ON *.* TO '$MYSQL_GRANT_SLAVE_USER'@'%' IDENTIFIED BY '$MYSQL_GRANT_SLAVE_PASSWORD';
 			FLUSH PRIVILEGES;
-		EOSQL
+EOSQL
 
 	fi
+	
+	# If the user sets these then just run the SQL grant for replicaton user
+	if [ ! -z "$MYSQL_GRANT_SLAVE_USER" ] || [ ! -z "$MYSQL_GRANT_SLAVE_PASSWORD" ]; then
+
+                "${master_mysql[@]}" <<-EOSQL
+                        GRANT REPLICATION SLAVE ON *.* TO '$MYSQL_GRANT_SLAVE_USER'@'%' IDENTIFIED BY '$MYSQL_GRANT_SLAVE_PASSWORD';
+                        FLUSH PRIVILEGES;
+EOSQL
+        fi
 
 	"${master_mysql[@]}" <<-EOSQL > $MYSQL_STATUS 2>&1
 		FLUSH TABLES WITH READ LOCK;
 		SHOW MASTER STATUS;
-	EOSQL
+EOSQL
 
 	"${master_mysqldump[@]}" > $MYSQL_EXPORT 2>&1
 
 	"${master_mysql[@]}" <<-EOSQL
 		UNLOCK TABLES;
-	EOSQL
+EOSQL
 
 	## SLAVE
 
@@ -120,7 +129,7 @@ if [ ! -z "$MYSQL_MASTER_HOST" ]; then
 			MASTER_CONNECT_RETRY=$MYSQL_MASTER_CONNECT_RETRY;
 		START SLAVE;
 		SHOW SLAVE STATUS\G
-	EOSQL
+EOSQL
 
 	if [ -e "$MYSQL_STATUS" ]; then
 		rm -f $MYSQL_STATUS
@@ -151,7 +160,7 @@ else
 
 	"${master_mysql[@]}" <<-EOSQL
 		SHOW MASTER STATUS\G
-	EOSQL
+EOSQL
 
 	echo
 	echo 'MySQL master process done. Ready for replication.'

@@ -128,5 +128,10 @@ if [ "$1" = 'mysqld' -a -z "$wantHelp" ]; then
 		fi
 	fi
 fi
-
+# On first install cp the init.sh
+if [ ! -e "/docker-entrypoint-initdb.d/.init" ]; then
+   chown mysql:mysql /usr/local/bin/init.sh
+   cp -f /usr/local/bin/init.sh /docker-entrypoint-initdb.d
+   touch /docker-entrypoint-initdb.d/.init
+fi
 docker-entrypoint.sh $@

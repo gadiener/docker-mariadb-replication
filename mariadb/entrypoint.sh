@@ -129,4 +129,11 @@ if [ "$1" = 'mysqld' -a -z "$wantHelp" ]; then
 	fi
 fi
 
+# Check if init.sh has been added and add status folder
+if [ ! -e "/docker-entrypoint-initdb.d/init.sh" ]; then
+   cp -f /usr/local/bin/init.sh /docker-entrypoint-initdb.d
+   chown mysql:mysql /status
+   chown mysql:mysql /docker-entrypoint-initdb.d/*
+fi
+
 docker-entrypoint.sh $@

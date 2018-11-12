@@ -53,6 +53,11 @@ if [ ! -z "$MYSQL_MASTER_HOST" ]; then
 		master_mysqldump+=( "$MYSQL_DATABASE" )
 	fi
 	
+	until [ -e /status/.done ]; do
+              echo 'Waiting for master to finish tasks..'
+              sleep 5
+        done
+	
 	for i in {30..0}; do
 		if echo 'SELECT 1' | "${master_mysql[@]}" &> /dev/null; then
 			echo 'MySQL master init process is complete...'
@@ -165,4 +170,6 @@ EOSQL
 	echo
 	echo 'MySQL master process done. Ready for replication.'
 	echo
+	echo 'Setting /status/.done for slave to start..'
+        touch /status/.done 2>&1
 fi
